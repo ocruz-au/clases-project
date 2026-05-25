@@ -224,18 +224,18 @@ discounted amount charged.
 
 ### Tests for User Story 6 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T075 [P] [US6] API test: admin user CRUD + role change; coupon CRUD + apply at checkout; manual refund (`apps/api/tests/api/admin.users.test.ts`)
-- [ ] T076 [US6] Unit test: coupon validation — expired coupon rejected, usage limit enforced, PERCENT vs FIXED calculation, invalid code rejected (`apps/api/src/modules/coupons/coupon.spec.ts`)
+- [x] T075 [P] [US6] API test: admin user CRUD + role change; coupon CRUD + apply at checkout; manual refund (`apps/api/tests/api/admin.users.test.ts`)
+- [x] T076 [US6] Unit test: coupon validation — expired coupon rejected, usage limit enforced, PERCENT vs FIXED calculation, invalid code rejected (`apps/api/src/modules/coupons/coupon.spec.ts`)
 
 ### Implementation for User Story 6
 
-- [ ] T077 [P] [US6] Implement admin users controller `apps/api/src/modules/users/admin-users.controller.ts`: `GET/PATCH/DELETE /admin/users/:id`, `POST /admin/users/:id/roles` — soft-delete for deactivation, role-change audit log; `@Roles(ADMIN)`
-- [ ] T078 [P] [US6] Implement `CouponsModule` in `apps/api/src/modules/coupons/`: `CouponService` (CRUD, `validateAndApply(code, userId, sessionId)` — checks expiry + usage limit + increments `redeemedCount` atomically); admin CRUD endpoints
-- [ ] T079 [US6] Integrate coupon application in checkout: in `SeatHoldService`/`CheckoutService`, accept optional `couponCode`, call `CouponService.validateAndApply`, adjust `amountCents` and pass line-item discount to Stripe Checkout Session (`apps/api/src/modules/bookings/seat-hold.service.ts`, `apps/api/src/modules/payments/checkout.service.ts`)
-- [ ] T080 [P] [US6] Implement admin payments controller `apps/api/src/modules/payments/admin-payments.controller.ts`: `GET /admin/payments` (list with filters), `POST /admin/refunds` (manual refund — delegates to Stripe, creates `Refund` row, audit log)
-- [ ] T081 [P] [US6] Build Next.js admin user management UI `apps/web/src/app/(admin)/users/page.tsx`: user list, edit role, deactivate
-- [ ] T082 [P] [US6] Build Next.js admin coupons management UI `apps/web/src/app/(admin)/coupons/page.tsx`: list, create, edit, deactivate; show `redeemedCount`
-- [ ] T083 [P] [US6] Build Next.js admin payments + refunds UI `apps/web/src/app/(admin)/payments/page.tsx`: payment list, status filter, "Issue Refund" action with amount input
+- [x] T077 [P] [US6] Implement admin users controller `apps/api/src/modules/users/admin-users.controller.ts`: `GET/PATCH/DELETE /admin/users/:id`, `POST /admin/users/:id/roles` — soft-delete for deactivation, role-change audit log; `@Roles(ADMIN)`
+- [x] T078 [P] [US6] Implement `CouponsModule` in `apps/api/src/modules/coupons/`: `CouponService` (CRUD, `validateAndApply(code, userId, sessionId)` — checks expiry + usage limit + increments `redeemedCount` atomically); admin CRUD endpoints
+- [x] T079 [US6] Integrate coupon application in checkout: in `SeatHoldService`/`CheckoutService`, accept optional `couponCode`, call `CouponService.validateAndApply`, adjust `amountCents` and pass line-item discount to Stripe Checkout Session (`apps/api/src/modules/bookings/seat-hold.service.ts`, `apps/api/src/modules/payments/checkout.service.ts`)
+- [x] T080 [P] [US6] Implement admin payments controller `apps/api/src/modules/payments/admin-payments.controller.ts`: `GET /admin/payments` (list with filters), `POST /admin/refunds` (manual refund — delegates to Stripe, creates `Refund` row, audit log)
+- [x] T081 [P] [US6] Build Next.js admin user management UI `apps/web/src/app/(admin)/users/page.tsx`: user list, edit role, deactivate
+- [x] T082 [P] [US6] Build Next.js admin coupons management UI `apps/web/src/app/(admin)/coupons/page.tsx`: list, create, edit, deactivate; show `redeemedCount`
+- [x] T083 [P] [US6] Build Next.js admin payments + refunds UI `apps/web/src/app/(admin)/payments/page.tsx`: payment list, status filter, "Issue Refund" action with amount input
 
 **Checkpoint**: User Stories 1–6 functional. Full admin operational capability (users, roles, payments, coupons) is available.
 

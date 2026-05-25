@@ -4,14 +4,16 @@ import Stripe from 'stripe';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { WaitlistModule } from '../waitlists/waitlist.module';
+import { CouponsModule } from '../coupons/coupons.module';
+import { AdminPaymentsController } from './admin-payments.controller';
 import { CheckoutCompletedHandler } from './handlers/checkout-completed.handler';
 import { ChargeRefundedHandler } from './handlers/charge-refunded.handler';
 import { PaymentFailedHandler } from './handlers/payment-failed.handler';
 import { WebhookController } from './webhook.controller';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, NotificationsModule, WaitlistModule],
-  controllers: [WebhookController],
+  imports: [PrismaModule, ConfigModule, NotificationsModule, WaitlistModule, CouponsModule],
+  controllers: [WebhookController, AdminPaymentsController],
   providers: [
     CheckoutCompletedHandler,
     PaymentFailedHandler,

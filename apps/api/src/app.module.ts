@@ -9,6 +9,7 @@ import { AuditLogInterceptor } from './modules/audit-logs/audit-log.interceptor'
 import { AuthModule } from './modules/auth/auth.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { ClassesModule } from './modules/classes/classes.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
 import { InstructorsModule } from './modules/instructors/instructors.module';
 import { JobsModule } from './jobs/jobs.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -38,6 +39,7 @@ import { WaitlistModule } from './modules/waitlists/waitlist.module';
     RolesModule,
     UsersModule,
     ClassesModule,
+    CouponsModule,
     SchedulesModule,
     InstructorsModule,
     NotificationsModule,

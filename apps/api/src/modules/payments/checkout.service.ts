@@ -1,8 +1,9 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SeatHoldService } from '../bookings/seat-hold.service';
+import { CouponService } from '../coupons/coupon.service';
 
 export interface CheckoutResult {
   bookingId: string;
@@ -18,6 +19,7 @@ export class CheckoutService {
     private readonly seatHoldService: SeatHoldService,
     private readonly config: ConfigService,
     @Inject('STRIPE') private readonly stripe: Stripe,
+    @Optional() private readonly couponService: CouponService | null,
   ) {}
 
   async createCheckout(userId: string, sessionId: string, couponCode?: string): Promise<CheckoutResult> {
@@ -43,7 +45,19 @@ export class CheckoutService {
     const hold = await this.seatHoldService.createHold(userId, sessionId, 'CHECKOUT');
 
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
-    const amountCents = session.class.priceCents;
+    const baseAmountCents = session.class.priceCents;
+
+    // Apply coupon if provided
+    let amountCents = baseAmountCents;
+    let couponId: string | undefined;
+    let discountCents = 0;
+
+    if (couponCode && this.couponService) {
+      const couponResult = await this.couponService.validateAndApply(couponCode, userId, baseAmountCents);
+      amountCents = couponResult.finalAmountCents;
+      couponId = couponResult.couponId;
+      discountCents = couponResult.discountCents;
+    }
 
     // Create booking record (HELD)
     const booking = await this.prisma.booking.create({
@@ -53,6 +67,7 @@ export class CheckoutService {
         status: 'HELD',
         seatHoldId: hold.id,
         amountCents,
+        couponId: couponId ?? null,
       },
     });
 
@@ -74,24 +89,38 @@ export class CheckoutService {
 
     const appUrl = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
 
+    // Build Stripe line items with optional discount
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+      {
+        price_data: {
+          currency: session.class.currency.toLowerCase(),
+          product_data: {
+            name: session.class.title,
+            description: `${session.room.location.name} — ${new Date(session.startsAt).toISOString()}`,
+          },
+          unit_amount: baseAmountCents,
+        },
+        quantity: 1,
+      },
+    ];
+
+    if (discountCents > 0) {
+      lineItems.push({
+        price_data: {
+          currency: session.class.currency.toLowerCase(),
+          product_data: { name: `Coupon discount (${couponCode ?? ''})` },
+          unit_amount: -discountCents,
+        },
+        quantity: 1,
+      });
+    }
+
     // Create Stripe Checkout Session
     const stripeSession = await this.stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
       customer_email: user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: session.class.currency.toLowerCase(),
-            product_data: {
-              name: session.class.title,
-              description: `${session.room.location.name} — ${new Date(session.startsAt).toISOString()}`,
-            },
-            unit_amount: amountCents,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       success_url: `${appUrl}/bookings/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/bookings/checkout/cancel`,
       expires_at: Math.floor(hold.expiresAt.getTime() / 1000),
