@@ -73,26 +73,26 @@ capacity count correct. Run concurrent hold test to prove no overbooking.
 
 ### Tests for User Story 1 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T021 [P] [US1] Integration test: concurrent last-seat claim — 2 simultaneous requests, exactly 1 succeeds and 1 gets 409 (`apps/api/tests/integration/bookings.concurrent.test.ts`)
-- [ ] T022 [P] [US1] Integration test: duplicate booking prevention — student re-books same session while holding/confirmed → 409 (`apps/api/tests/integration/bookings.duplicate.test.ts`)
-- [ ] T023 [P] [US1] API test: auth flow — register → login → JWT issued → protected route accessible (`apps/api/tests/api/auth.test.ts`)
-- [ ] T024 [P] [US1] API test: full booking workflow — checkout → mock Stripe webhook `checkout.session.completed` → booking `CONFIRMED`, notification queued (`apps/api/tests/api/bookings.test.ts`)
+- [x] T021 [P] [US1] Integration test: concurrent last-seat claim — 2 simultaneous requests, exactly 1 succeeds and 1 gets 409 (`apps/api/tests/integration/bookings.concurrent.test.ts`)
+- [x] T022 [P] [US1] Integration test: duplicate booking prevention — student re-books same session while holding/confirmed → 409 (`apps/api/tests/integration/bookings.duplicate.test.ts`)
+- [x] T023 [P] [US1] API test: auth flow — register → login → JWT issued → protected route accessible (`apps/api/tests/api/auth.test.ts`)
+- [x] T024 [P] [US1] API test: full booking workflow — checkout → mock Stripe webhook `checkout.session.completed` → booking `CONFIRMED`, notification queued (`apps/api/tests/api/bookings.test.ts`)
 
 ### Implementation for User Story 1
 
-- [ ] T025 [P] [US1] Implement `ClassesModule` in `apps/api/src/modules/classes/`: `ClassService` (CRUD with soft-delete), `ClassController` (`GET /api/v1/classes`, Zod-validated), `CategoryService` (CRUD)
-- [ ] T026 [P] [US1] Implement `SchedulesModule` in `apps/api/src/modules/schedules/`: `SessionService` with list-and-filter endpoint (`GET /api/v1/classes/sessions?dateFrom&dateTo&categoryId&instructorId&locationId`), Perth-tz time display, `seatsAvailable` derived field
-- [ ] T027 [US1] Implement `SeatHoldService` in `apps/api/src/modules/bookings/seat-hold.service.ts`: `createHold(userId, sessionId, source)` — `BEGIN; SELECT ... FOR UPDATE ON class_session; recount active holds + confirmed bookings; INSERT seat_hold IF count < capacity; COMMIT` — throws `CAPACITY_EXCEEDED` if full; uses configurable `seatHoldWindowMinutes` from `SettingsService`
-- [ ] T028 [US1] Implement `CheckoutService` in `apps/api/src/modules/payments/checkout.service.ts`: create Stripe Checkout Session (price from class, `metadata.bookingId`, expiry = `holdExpiresAt`), return `CheckoutResult` per `contracts/openapi.yaml`; `POST /api/v1/bookings/checkout`
-- [ ] T029 [US1] Implement Stripe webhook receiver in `apps/api/src/modules/payments/webhook.controller.ts`: `POST /api/v1/payments/stripe/webhook` — raw-body parsing, `stripe.webhooks.constructEvent` signature check, `ProcessedWebhookEvent` idempotency guard, route to handlers
-- [ ] T030 [US1] Implement `CheckoutCompletedHandler` in `apps/api/src/modules/payments/handlers/checkout-completed.handler.ts`: transaction — verify hold still valid; set `Payment.status=SUCCEEDED`, `Booking.status=CONFIRMED`, consume `SeatHold`; queue `BOOKING_CONFIRMATION` notification post-commit; audit log
-- [ ] T031 [US1] Implement `PaymentFailedHandler` in `apps/api/src/modules/payments/handlers/payment-failed.handler.ts`: handles `payment_intent.payment_failed` + `checkout.session.expired` — set `Booking.status=EXPIRED`, `SeatHold.status=RELEASED`, restore capacity count; audit log
-- [ ] T032 [P] [US1] Create booking confirmation React Email template in `packages/emails/src/templates/BookingConfirmation.tsx`: class name, session date/time (Perth local), instructor, location, amount paid
-- [ ] T033 [US1] Implement `NotificationsModule` in `apps/api/src/modules/notifications/`: `NotificationService.dispatch(userId, type, payload)` — create `Notification` row `PENDING`, call Resend with appropriate template, update to `SENT`/`FAILED`; always called after DB commit
-- [ ] T034 [P] [US1] Build Next.js class browse page `apps/web/src/app/(student)/classes/page.tsx`: server component, filter controls (date, category, instructor, location), session cards with `seatsAvailable` indicator, link to session detail
-- [ ] T035 [US1] Build Next.js checkout flow `apps/web/src/app/(student)/bookings/checkout/`: session detail → "Book Now" POST to `/api/v1/bookings/checkout` → redirect to `stripeCheckoutUrl`; success/cancel pages at `/bookings/checkout/success` and `/cancel`
-- [ ] T036 [P] [US1] Build Next.js booking history page `apps/web/src/app/(student)/bookings/page.tsx`: list student's bookings with status chips, Perth-local times, link to cancel
-- [ ] T037 [US1] Unit test: `SeatHoldService` capacity math, hold expiry logic, `BookingStateMachine` valid/invalid transitions (`apps/api/src/modules/bookings/seat-hold.service.spec.ts`)
+- [x] T025 [P] [US1] Implement `ClassesModule` in `apps/api/src/modules/classes/`: `ClassService` (CRUD with soft-delete), `ClassController` (`GET /api/v1/classes`, Zod-validated), `CategoryService` (CRUD)
+- [x] T026 [P] [US1] Implement `SchedulesModule` in `apps/api/src/modules/schedules/`: `SessionService` with list-and-filter endpoint (`GET /api/v1/classes/sessions?dateFrom&dateTo&categoryId&instructorId&locationId`), Perth-tz time display, `seatsAvailable` derived field
+- [x] T027 [US1] Implement `SeatHoldService` in `apps/api/src/modules/bookings/seat-hold.service.ts`: `createHold(userId, sessionId, source)` — `BEGIN; SELECT ... FOR UPDATE ON class_session; recount active holds + confirmed bookings; INSERT seat_hold IF count < capacity; COMMIT` — throws `CAPACITY_EXCEEDED` if full; uses configurable `seatHoldWindowMinutes` from `SettingsService`
+- [x] T028 [US1] Implement `CheckoutService` in `apps/api/src/modules/payments/checkout.service.ts`: create Stripe Checkout Session (price from class, `metadata.bookingId`, expiry = `holdExpiresAt`), return `CheckoutResult` per `contracts/openapi.yaml`; `POST /api/v1/bookings/checkout`
+- [x] T029 [US1] Implement Stripe webhook receiver in `apps/api/src/modules/payments/webhook.controller.ts`: `POST /api/v1/payments/stripe/webhook` — raw-body parsing, `stripe.webhooks.constructEvent` signature check, `ProcessedWebhookEvent` idempotency guard, route to handlers
+- [x] T030 [US1] Implement `CheckoutCompletedHandler` in `apps/api/src/modules/payments/handlers/checkout-completed.handler.ts`: transaction — verify hold still valid; set `Payment.status=SUCCEEDED`, `Booking.status=CONFIRMED`, consume `SeatHold`; queue `BOOKING_CONFIRMATION` notification post-commit; audit log
+- [x] T031 [US1] Implement `PaymentFailedHandler` in `apps/api/src/modules/payments/handlers/payment-failed.handler.ts`: handles `payment_intent.payment_failed` + `checkout.session.expired` — set `Booking.status=EXPIRED`, `SeatHold.status=RELEASED`, restore capacity count; audit log
+- [x] T032 [P] [US1] Create booking confirmation React Email template in `packages/emails/src/templates/BookingConfirmation.tsx`: class name, session date/time (Perth local), instructor, location, amount paid
+- [x] T033 [US1] Implement `NotificationsModule` in `apps/api/src/modules/notifications/`: `NotificationService.dispatch(userId, type, payload)` — create `Notification` row `PENDING`, call Resend with appropriate template, update to `SENT`/`FAILED`; always called after DB commit
+- [x] T034 [P] [US1] Build Next.js class browse page `apps/web/src/app/(student)/classes/page.tsx`: server component, filter controls (date, category, instructor, location), session cards with `seatsAvailable` indicator, link to session detail
+- [x] T035 [US1] Build Next.js checkout flow `apps/web/src/app/(student)/bookings/checkout/`: session detail → "Book Now" POST to `/api/v1/bookings/checkout` → redirect to `stripeCheckoutUrl`; success/cancel pages at `/bookings/checkout/success` and `/cancel`
+- [x] T036 [P] [US1] Build Next.js booking history page `apps/web/src/app/(student)/bookings/page.tsx`: list student's bookings with status chips, Perth-local times, link to cancel
+- [x] T037 [US1] Unit test: `SeatHoldService` capacity math, hold expiry logic, `BookingStateMachine` valid/invalid transitions (`apps/api/src/modules/bookings/seat-hold.service.spec.ts`)
 
 **Checkpoint**: User Story 1 fully functional — student can register, browse, book, pay, and receive a confirmation email. No overbooking or duplicate bookings.
 

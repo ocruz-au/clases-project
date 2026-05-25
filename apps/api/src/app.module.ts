@@ -7,8 +7,13 @@ import { apiEnvSchema } from '@app/shared';
 import { AuditLogModule } from './modules/audit-logs/audit-log.module';
 import { AuditLogInterceptor } from './modules/audit-logs/audit-log.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
+import { ClassesModule } from './modules/classes/classes.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -29,6 +34,11 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     RolesModule,
     UsersModule,
+    ClassesModule,
+    SchedulesModule,
+    NotificationsModule,
+    BookingsModule,
+    PaymentsModule,
   ],
   providers: [
     {
