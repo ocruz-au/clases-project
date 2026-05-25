@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { BookingsController } from './bookings.controller';
+import { CancellationPolicyService } from './cancellation-policy.service';
 import { SeatHoldService } from './seat-hold.service';
 import { CheckoutService } from '../payments/checkout.service';
 
@@ -13,6 +14,7 @@ import { CheckoutService } from '../payments/checkout.service';
   providers: [
     SeatHoldService,
     CheckoutService,
+    CancellationPolicyService,
     {
       provide: 'STRIPE',
       useFactory: (config: ConfigService) =>
@@ -20,6 +22,6 @@ import { CheckoutService } from '../payments/checkout.service';
       inject: [ConfigService],
     },
   ],
-  exports: [SeatHoldService, CheckoutService],
+  exports: [SeatHoldService, CheckoutService, CancellationPolicyService],
 })
 export class BookingsModule {}

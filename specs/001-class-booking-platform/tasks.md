@@ -143,20 +143,20 @@ Cancel a session and confirm student notifications.
 
 ### Tests for User Story 3 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T051 [P] [US3] API test: admin CRUD for category, location, room, class, availability rule; generate-sessions returns correct Perth-tz session times (`apps/api/tests/api/admin.catalog.test.ts`)
-- [ ] T052 [US3] Unit test: RRULE schedule generator — weekly class, 10 occurrences, Perth local time, correct UTC storage; boundary around midnight Perth (`apps/api/src/modules/schedules/schedule-generator.spec.ts`)
+- [x] T051 [P] [US3] API test: admin CRUD for category, location, room, class, availability rule; generate-sessions returns correct Perth-tz session times (`apps/api/tests/api/admin.catalog.test.ts`)
+- [x] T052 [US3] Unit test: RRULE schedule generator — weekly class, 10 occurrences, Perth local time, correct UTC storage; boundary around midnight Perth (`apps/api/src/modules/schedules/schedule-generator.spec.ts`)
 
 ### Implementation for User Story 3
 
-- [ ] T053 [P] [US3] Extend `ClassesModule`: `CategoryController` (admin CRUD `/admin/categories`), `LocationController` + `RoomController` (admin CRUD `/admin/locations`, `/admin/rooms`) — all with `@Roles(ADMIN)` guard, soft-delete, audit log
-- [ ] T054 [P] [US3] Implement `InstructorsModule` in `apps/api/src/modules/instructors/`: `InstructorService` (create/update `InstructorProfile`, list, assign to session), `InstructorController` (admin CRUD `/admin/instructors`)
-- [ ] T055 [US3] Implement `AvailabilityRuleService` + `ScheduleGeneratorService` in `apps/api/src/modules/schedules/`: parse RRULE, expand occurrences using `rrule` library, convert Perth start times to UTC, insert `ClassSession` rows; `POST /admin/availability-rules/:id/generate`
-- [ ] T056 [US3] Admin session management in `apps/api/src/modules/schedules/admin-session.controller.ts`: `PATCH /admin/sessions/:id` (edit capacity, status), `POST /admin/sessions/:id/cancel` (soft-cancel session: batch-cancel confirmed bookings, initiate batch refunds, batch cancellation emails) — entire batch in one transaction; audit log
-- [ ] T057 [P] [US3] Implement `CancellationPolicyService` in `apps/api/src/modules/bookings/cancellation-policy.service.ts`: CRUD, `computeRefundPercent(policy, sessionStartsAt, cancelledAt)` helper (Perth-aware)
-- [ ] T058 [P] [US3] Build Next.js admin dashboard layout `apps/web/src/app/(admin)/layout.tsx`: nav (classes, schedules, users, waitlists, payments, coupons, reports)
-- [ ] T059 [P] [US3] Build Next.js admin catalog UI `apps/web/src/app/(admin)/catalog/page.tsx`: tabs for Categories / Locations / Rooms — list, create, edit, soft-delete
-- [ ] T060 [P] [US3] Build Next.js admin class + session management UI `apps/web/src/app/(admin)/classes/`: class list/create/edit; session list with "Generate Schedule" action; session detail with capacity edit + cancel button
-- [ ] T061 [P] [US3] Build Next.js admin instructor management UI `apps/web/src/app/(admin)/instructors/page.tsx`: list, create, edit, deactivate
+- [x] T053 [P] [US3] Extend `ClassesModule`: `CategoryController` (admin CRUD `/admin/categories`), `LocationController` + `RoomController` (admin CRUD `/admin/locations`, `/admin/rooms`) — all with `@Roles(ADMIN)` guard, soft-delete, audit log
+- [x] T054 [P] [US3] Implement `InstructorsModule` in `apps/api/src/modules/instructors/`: `InstructorService` (create/update `InstructorProfile`, list, assign to session), `InstructorController` (admin CRUD `/admin/instructors`)
+- [x] T055 [US3] Implement `AvailabilityRuleService` + `ScheduleGeneratorService` in `apps/api/src/modules/schedules/`: parse RRULE, expand occurrences using `rrule` library, convert Perth start times to UTC, insert `ClassSession` rows; `POST /admin/availability-rules/:id/generate`
+- [x] T056 [US3] Admin session management in `apps/api/src/modules/schedules/admin-session.controller.ts`: `PATCH /admin/sessions/:id` (edit capacity, status), `POST /admin/sessions/:id/cancel` (soft-cancel session: batch-cancel confirmed bookings, initiate batch refunds, batch cancellation emails) — entire batch in one transaction; audit log
+- [x] T057 [P] [US3] Implement `CancellationPolicyService` in `apps/api/src/modules/bookings/cancellation-policy.service.ts`: CRUD, `computeRefundPercent(policy, sessionStartsAt, cancelledAt)` helper (Perth-aware)
+- [x] T058 [P] [US3] Build Next.js admin dashboard layout `apps/web/src/app/(admin)/layout.tsx`: nav (classes, schedules, users, waitlists, payments, coupons, reports)
+- [x] T059 [P] [US3] Build Next.js admin catalog UI `apps/web/src/app/(admin)/catalog/page.tsx`: tabs for Categories / Locations / Rooms — list, create, edit, soft-delete
+- [x] T060 [P] [US3] Build Next.js admin class + session management UI `apps/web/src/app/(admin)/classes/`: class list/create/edit; session list with "Generate Schedule" action; session detail with capacity edit + cancel button
+- [x] T061 [P] [US3] Build Next.js admin instructor management UI `apps/web/src/app/(admin)/instructors/page.tsx`: list, create, edit, deactivate
 
 **Checkpoint**: All three P1 User Stories functional. MVP is complete and demonstrable.
 
