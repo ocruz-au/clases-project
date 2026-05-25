@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -9,7 +9,7 @@ import { WaitlistController } from './waitlist.controller';
 import { AdminWaitlistController } from './admin-waitlist.controller';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, NotificationsModule, BookingsModule],
+  imports: [PrismaModule, ConfigModule, NotificationsModule, forwardRef(() => BookingsModule)],
   controllers: [WaitlistController, AdminWaitlistController],
   providers: [WaitlistService, WaitlistPromotionService],
   exports: [WaitlistService, WaitlistPromotionService],

@@ -5,6 +5,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { WaitlistModule } from '../waitlists/waitlist.module';
 import { CheckoutCompletedHandler } from './handlers/checkout-completed.handler';
+import { ChargeRefundedHandler } from './handlers/charge-refunded.handler';
 import { PaymentFailedHandler } from './handlers/payment-failed.handler';
 import { WebhookController } from './webhook.controller';
 
@@ -14,6 +15,7 @@ import { WebhookController } from './webhook.controller';
   providers: [
     CheckoutCompletedHandler,
     PaymentFailedHandler,
+    ChargeRefundedHandler,
     {
       provide: 'STRIPE',
       useFactory: (config: ConfigService) =>

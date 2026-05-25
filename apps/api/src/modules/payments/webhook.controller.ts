@@ -14,6 +14,7 @@ import type { Request } from 'express';
 import Stripe from 'stripe';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CheckoutCompletedHandler } from './handlers/checkout-completed.handler';
+import { ChargeRefundedHandler } from './handlers/charge-refunded.handler';
 import { PaymentFailedHandler } from './handlers/payment-failed.handler';
 
 @ApiTags('Payments')
@@ -27,6 +28,7 @@ export class WebhookController {
     private readonly config: ConfigService,
     private readonly completedHandler: CheckoutCompletedHandler,
     private readonly failedHandler: PaymentFailedHandler,
+    private readonly chargeRefundedHandler: ChargeRefundedHandler,
     @Inject('STRIPE') private readonly stripe: Stripe,
   ) {
     this.webhookSecret = config.getOrThrow<string>('STRIPE_WEBHOOK_SECRET');
@@ -71,6 +73,10 @@ export class WebhookController {
 
         case 'payment_intent.payment_failed':
           await this.failedHandler.handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'charge.refunded':
+          await this.chargeRefundedHandler.handle(event.data.object as Stripe.Charge);
           break;
 
         default:

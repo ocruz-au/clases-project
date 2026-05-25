@@ -5,6 +5,7 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, type AuthenticatedUser } from '../auth/current-user.decorator';
 import { CheckoutService } from '../payments/checkout.service';
+import { CancellationService } from './cancellation.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 const checkoutSchema = z.object({
@@ -18,6 +19,7 @@ const checkoutSchema = z.object({
 export class BookingsController {
   constructor(
     private readonly checkoutService: CheckoutService,
+    private readonly cancellationService: CancellationService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -59,5 +61,11 @@ export class BookingsController {
         payment: true,
       },
     });
+  }
+
+  @Post(':id/cancel')
+  @ApiOperation({ summary: 'Cancel a confirmed booking' })
+  cancel(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.cancellationService.cancelBooking(id, user.id);
   }
 }

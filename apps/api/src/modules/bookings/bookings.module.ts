@@ -1,20 +1,23 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { WaitlistModule } from '../waitlists/waitlist.module';
 import { BookingsController } from './bookings.controller';
 import { CancellationPolicyService } from './cancellation-policy.service';
+import { CancellationService } from './cancellation.service';
 import { SeatHoldService } from './seat-hold.service';
 import { CheckoutService } from '../payments/checkout.service';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, NotificationsModule],
+  imports: [PrismaModule, ConfigModule, NotificationsModule, forwardRef(() => WaitlistModule)],
   controllers: [BookingsController],
   providers: [
     SeatHoldService,
     CheckoutService,
     CancellationPolicyService,
+    CancellationService,
     {
       provide: 'STRIPE',
       useFactory: (config: ConfigService) =>
@@ -22,6 +25,6 @@ import { CheckoutService } from '../payments/checkout.service';
       inject: [ConfigService],
     },
   ],
-  exports: [SeatHoldService, CheckoutService, CancellationPolicyService],
+  exports: [SeatHoldService, CheckoutService, CancellationPolicyService, CancellationService],
 })
 export class BookingsModule {}

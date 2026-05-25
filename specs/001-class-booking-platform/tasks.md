@@ -173,16 +173,16 @@ promotion if applicable.
 
 ### Tests for User Story 4 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T062 [P] [US4] API test: cancel within refund window → `CANCELLED`, Stripe refund called, email queued; cancel outside window → `CANCELLED`, no refund (`apps/api/tests/api/cancellation.test.ts`)
-- [ ] T063 [US4] Unit test: `CancellationPolicyService.computeRefundPercent` — full/partial/zero refund per configured time brackets; Perth-tz boundary (`apps/api/src/modules/bookings/cancellation-policy.spec.ts`)
+- [x] T062 [P] [US4] API test: cancel within refund window → `CANCELLED`, Stripe refund called, email queued; cancel outside window → `CANCELLED`, no refund (`apps/api/tests/api/cancellation.test.ts`)
+- [x] T063 [US4] Unit test: `CancellationPolicyService.computeRefundPercent` — full/partial/zero refund per configured time brackets; Perth-tz boundary (`apps/api/src/modules/bookings/cancellation-policy.spec.ts`)
 
 ### Implementation for User Story 4
 
-- [ ] T064 [US4] Implement `CancellationService` in `apps/api/src/modules/bookings/cancellation.service.ts`: `cancelBooking(bookingId, actorId)` — in a transaction: validate `CONFIRMED→CANCELLED` transition, compute refund via `CancellationPolicyService`, call Stripe `refunds.create` with idempotency key, create `Refund` row, free seat, call `WaitlistPromotionService.promoteNext`, queue cancellation email post-commit; audit log
-- [ ] T065 [US4] Expose student cancellation endpoint `POST /bookings/:id/cancel` in `apps/api/src/modules/bookings/bookings.controller.ts`: student can only cancel their own booking; delegates to `CancellationService`
-- [ ] T066 [US4] Implement `ChargeRefundedHandler` in `apps/api/src/modules/payments/handlers/charge-refunded.handler.ts`: `charge.refunded` webhook → update `Payment.status` to `REFUNDED`/`PARTIALLY_REFUNDED` and `Refund.status=SUCCEEDED`; idempotency-guarded
-- [ ] T067 [P] [US4] Create cancellation React Email template in `packages/emails/src/templates/Cancellation.tsx`: class/session details, refund amount (or none), policy note
-- [ ] T068 [P] [US4] Build Next.js cancel booking UI `apps/web/src/app/(student)/bookings/[id]/cancel/page.tsx`: show booking details, refund preview (based on current policy + time), confirm button; redirects to booking history on success
+- [x] T064 [US4] Implement `CancellationService` in `apps/api/src/modules/bookings/cancellation.service.ts`: `cancelBooking(bookingId, actorId)` — in a transaction: validate `CONFIRMED→CANCELLED` transition, compute refund via `CancellationPolicyService`, call Stripe `refunds.create` with idempotency key, create `Refund` row, free seat, call `WaitlistPromotionService.promoteNext`, queue cancellation email post-commit; audit log
+- [x] T065 [US4] Expose student cancellation endpoint `POST /bookings/:id/cancel` in `apps/api/src/modules/bookings/bookings.controller.ts`: student can only cancel their own booking; delegates to `CancellationService`
+- [x] T066 [US4] Implement `ChargeRefundedHandler` in `apps/api/src/modules/payments/handlers/charge-refunded.handler.ts`: `charge.refunded` webhook → update `Payment.status` to `REFUNDED`/`PARTIALLY_REFUNDED` and `Refund.status=SUCCEEDED`; idempotency-guarded
+- [x] T067 [P] [US4] Create cancellation React Email template in `packages/emails/src/templates/Cancellation.tsx`: class/session details, refund amount (or none), policy note
+- [x] T068 [P] [US4] Build Next.js cancel booking UI `apps/web/src/app/(student)/bookings/[id]/cancel/page.tsx`: show booking details, refund preview (based on current policy + time), confirm button; redirects to booking history on success
 
 **Checkpoint**: User Stories 1–4 functional. Full booking lifecycle (book → pay → cancel → refund) is available to students.
 
