@@ -199,15 +199,15 @@ sessions.
 
 ### Tests for User Story 5 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T069 [P] [US5] API test: instructor views assigned sessions + attendee list; records ATTENDED/NO_SHOW; denied access to unassigned session (`apps/api/tests/api/instructor.test.ts`)
+- [x] T069 [P] [US5] API test: instructor views assigned sessions + attendee list; records ATTENDED/NO_SHOW; denied access to unassigned session (`apps/api/tests/api/instructor.test.ts`)
 
 ### Implementation for User Story 5
 
-- [ ] T070 [P] [US5] Implement instructor sessions endpoint `GET /instructor/sessions` + `GET /instructor/sessions/:id/attendees` in `apps/api/src/modules/instructors/instructor-sessions.controller.ts`: `@Roles(INSTRUCTOR)` guard; attendee list includes name, booking status, check-in status; filter to sessions where `instructorId = authed user's InstructorProfile.id`
-- [ ] T071 [US5] Implement attendance recording `POST /instructor/sessions/:id/attendance` in `apps/api/src/modules/instructors/attendance.service.ts`: guard `ATTENDED`/`NO_SHOW` transition only for `CONFIRMED` bookings on sessions assigned to the authed instructor; audit log
-- [ ] T072 [P] [US5] Build Next.js instructor dashboard `apps/web/src/app/(instructor)/page.tsx`: upcoming + past sessions list
-- [ ] T073 [P] [US5] Build Next.js instructor session detail `apps/web/src/app/(instructor)/sessions/[id]/page.tsx`: attendee table with status badges and check-in / no-show action buttons
-- [ ] T074 [US5] Unit test: instructor access guard — rejects requests from instructors for sessions not assigned to them (`apps/api/src/modules/instructors/instructor.guard.spec.ts`)
+- [x] T070 [P] [US5] Implement instructor sessions endpoint `GET /instructor/sessions` + `GET /instructor/sessions/:id/attendees` in `apps/api/src/modules/instructors/instructor-sessions.controller.ts`: `@Roles(INSTRUCTOR)` guard; attendee list includes name, booking status, check-in status; filter to sessions where `instructorId = authed user's InstructorProfile.id`
+- [x] T071 [US5] Implement attendance recording `POST /instructor/sessions/:id/attendance` in `apps/api/src/modules/instructors/attendance.service.ts`: guard `ATTENDED`/`NO_SHOW` transition only for `CONFIRMED` bookings on sessions assigned to the authed instructor; audit log
+- [x] T072 [P] [US5] Build Next.js instructor dashboard `apps/web/src/app/(instructor)/page.tsx`: upcoming + past sessions list
+- [x] T073 [P] [US5] Build Next.js instructor session detail `apps/web/src/app/(instructor)/sessions/[id]/page.tsx`: attendee table with status badges and check-in / no-show action buttons
+- [x] T074 [US5] Unit test: instructor access guard — rejects requests from instructors for sessions not assigned to them (`apps/api/src/modules/instructors/instructor.guard.spec.ts`)
 
 **Checkpoint**: User Stories 1–5 functional. Instructor attendance workflow is complete.
 
