@@ -1,12 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { WaitlistPromotionService } from '../../waitlists/promotion.service';
 
 @Injectable()
 export class PaymentFailedHandler {
   private readonly logger = new Logger(PaymentFailedHandler.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly promotion: WaitlistPromotionService | null,
+  ) {}
 
   async handleSessionExpired(stripeSession: Stripe.Checkout.Session): Promise<void> {
     const bookingId = stripeSession.metadata?.['bookingId'];
@@ -38,11 +42,19 @@ export class PaymentFailedHandler {
   }
 
   private async expireBooking(bookingId: string, paymentId: string | null): Promise<void> {
+    let sessionId: string | null = null;
+    let holdSource: string | null = null;
+    let waitlistEntryId: string | null = null;
+
     await this.prisma.$transaction(async (tx) => {
       const booking = await tx.booking.findFirst({
         where: { id: bookingId, deletedAt: null },
+        include: { seatHold: true },
       });
       if (!booking || booking.status === 'EXPIRED') return;
+
+      sessionId = booking.classSessionId;
+      holdSource = booking.seatHold?.source ?? null;
 
       await tx.booking.update({
         where: { id: bookingId },
@@ -54,6 +66,20 @@ export class PaymentFailedHandler {
           where: { id: booking.seatHoldId },
           data: { status: 'RELEASED' },
         });
+
+        // If promoted from waitlist, expire the waitlist entry
+        if (holdSource === 'WAITLIST_PROMOTION') {
+          const entry = await tx.waitlistEntry.findFirst({
+            where: { offeredSeatHoldId: booking.seatHoldId, status: 'OFFERED' },
+          });
+          if (entry) {
+            waitlistEntryId = entry.id;
+            await tx.waitlistEntry.update({
+              where: { id: entry.id },
+              data: { status: 'EXPIRED' },
+            });
+          }
+        }
       }
 
       if (paymentId) {
@@ -68,9 +94,16 @@ export class PaymentFailedHandler {
           action: 'BOOKING_EXPIRED',
           resourceType: 'Booking',
           resourceId: bookingId,
-          afterState: { status: 'EXPIRED' },
+          afterState: { status: 'EXPIRED', waitlistEntryId },
         },
       });
     });
+
+    // Promote next waitlist entry after expiry (fire-and-forget)
+    if (sessionId && this.promotion) {
+      this.promotion.promoteNext(sessionId).catch((err) =>
+        this.logger.error(`Failed to promote next after expiry: ${String(err)}`),
+      );
+    }
   }
 }

@@ -110,22 +110,22 @@ second student is promoted.
 
 ### Tests for User Story 2 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T038 [P] [US2] Integration test: FIFO waitlist promotion — cancel booking on full session, verify next WAITING entry promoted, SeatHold created (`apps/api/tests/integration/waitlist.test.ts`)
-- [ ] T039 [P] [US2] Integration test: hold-expiry cascade — promoted student's hold expires, verify next WAITING entry promoted automatically (`apps/api/tests/integration/waitlist-expiry.test.ts`)
-- [ ] T040 [P] [US2] API test: join waitlist, view position, admin remove/skip/promote, end-to-end promotion+payment (`apps/api/tests/api/waitlist.test.ts`)
+- [x] T038 [P] [US2] Integration test: FIFO waitlist promotion — cancel booking on full session, verify next WAITING entry promoted, SeatHold created (`apps/api/tests/integration/waitlist.test.ts`)
+- [x] T039 [P] [US2] Integration test: hold-expiry cascade — promoted student's hold expires, verify next WAITING entry promoted automatically (`apps/api/tests/integration/waitlist-expiry.test.ts`)
+- [x] T040 [P] [US2] API test: join waitlist, view position, admin remove/skip/promote, end-to-end promotion+payment (`apps/api/tests/api/waitlist.test.ts`)
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Implement `WaitlistModule` in `apps/api/src/modules/waitlists/`: `WaitlistService` — `joinWaitlist(userId, sessionId)` (guard: session must be full; unique entry constraint; append to ordered queue), `getQueueForSession(sessionId)` (ordered by `position`)
-- [ ] T042 [US2] Implement `WaitlistPromotionService` in `apps/api/src/modules/waitlists/promotion.service.ts`: `promoteNext(sessionId)` — in a transaction: select next `WAITING` entry, call `SeatHoldService.createHold(source=WAITLIST_PROMOTION)`, set entry `status=OFFERED`, `offeredSeatHoldId`; queue `WAITLIST_PROMOTION` email post-commit; audit log
-- [ ] T043 [US2] Implement hold-expiry cron job in `apps/api/src/jobs/hold-expiry.job.ts` (`@Cron(CronExpression.EVERY_MINUTE)`): find all `ACTIVE` `SeatHold` rows with `expiresAt < now()`; for each: set `status=RELEASED`, set linked `Booking.status=EXPIRED` (if any), call `WaitlistPromotionService.promoteNext(sessionId)` for each affected session; run in a transaction per hold; audit log
-- [ ] T044 [US2] Update `PaymentFailedHandler` (T031): when `source=WAITLIST_PROMOTION`, additionally set `WaitlistEntry.status=EXPIRED` and call `WaitlistPromotionService.promoteNext(sessionId)` to offer seat to the next entry
-- [ ] T045 [US2] Implement late-webhook reconciliation in `CheckoutCompletedHandler` (T030): if hold is expired when webhook arrives and session still has capacity → honor and confirm; if session full → initiate Stripe Refunds API call (with idempotency key) + notify student (`apps/api/src/modules/payments/handlers/checkout-completed.handler.ts`)
-- [ ] T046 [P] [US2] Admin waitlist endpoints in `apps/api/src/modules/waitlists/admin-waitlist.controller.ts`: `GET /admin/waitlist/:sessionId` (ordered queue), `POST /admin/waitlist/entries/:id/action` (REMOVE/SKIP/PROMOTE) — each action in a transaction + audit log
-- [ ] T047 [P] [US2] Create waitlist-promotion React Email template in `packages/emails/src/templates/WaitlistPromotion.tsx`: class/session details, Perth-local payment deadline, checkout link
-- [ ] T048 [P] [US2] Build Next.js waitlist join UI `apps/web/src/app/(student)/classes/[id]/waitlist.tsx`: "Join Waitlist" button (shown when `seatsAvailable=0`), position display after joining
-- [ ] T049 [P] [US2] Build Next.js admin waitlist management view `apps/web/src/app/(admin)/sessions/[id]/waitlist/page.tsx`: ordered queue table, action buttons (Remove / Skip / Promote)
-- [ ] T050 [US2] Unit test: `WaitlistPromotionService` — ordering logic, OFFERED→EXPIRED cascade to next entry, admin SKIP re-ordering (`apps/api/src/modules/waitlists/waitlist.spec.ts`)
+- [x] T041 [US2] Implement `WaitlistModule` in `apps/api/src/modules/waitlists/`: `WaitlistService` — `joinWaitlist(userId, sessionId)` (guard: session must be full; unique entry constraint; append to ordered queue), `getQueueForSession(sessionId)` (ordered by `position`)
+- [x] T042 [US2] Implement `WaitlistPromotionService` in `apps/api/src/modules/waitlists/promotion.service.ts`: `promoteNext(sessionId)` — in a transaction: select next `WAITING` entry, call `SeatHoldService.createHold(source=WAITLIST_PROMOTION)`, set entry `status=OFFERED`, `offeredSeatHoldId`; queue `WAITLIST_PROMOTION` email post-commit; audit log
+- [x] T043 [US2] Implement hold-expiry cron job in `apps/api/src/jobs/hold-expiry.job.ts` (`@Cron(CronExpression.EVERY_MINUTE)`): find all `ACTIVE` `SeatHold` rows with `expiresAt < now()`; for each: set `status=RELEASED`, set linked `Booking.status=EXPIRED` (if any), call `WaitlistPromotionService.promoteNext(sessionId)` for each affected session; run in a transaction per hold; audit log
+- [x] T044 [US2] Update `PaymentFailedHandler` (T031): when `source=WAITLIST_PROMOTION`, additionally set `WaitlistEntry.status=EXPIRED` and call `WaitlistPromotionService.promoteNext(sessionId)` to offer seat to the next entry
+- [x] T045 [US2] Implement late-webhook reconciliation in `CheckoutCompletedHandler` (T030): if hold is expired when webhook arrives and session still has capacity → honor and confirm; if session full → initiate Stripe Refunds API call (with idempotency key) + notify student (`apps/api/src/modules/payments/handlers/checkout-completed.handler.ts`)
+- [x] T046 [P] [US2] Admin waitlist endpoints in `apps/api/src/modules/waitlists/admin-waitlist.controller.ts`: `GET /admin/waitlist/:sessionId` (ordered queue), `POST /admin/waitlist/entries/:id/action` (REMOVE/SKIP/PROMOTE) — each action in a transaction + audit log
+- [x] T047 [P] [US2] Create waitlist-promotion React Email template in `packages/emails/src/templates/WaitlistPromotion.tsx`: class/session details, Perth-local payment deadline, checkout link
+- [x] T048 [P] [US2] Build Next.js waitlist join UI `apps/web/src/app/(student)/classes/[id]/waitlist.tsx`: "Join Waitlist" button (shown when `seatsAvailable=0`), position display after joining
+- [x] T049 [P] [US2] Build Next.js admin waitlist management view `apps/web/src/app/(admin)/sessions/[id]/waitlist/page.tsx`: ordered queue table, action buttons (Remove / Skip / Promote)
+- [x] T050 [US2] Unit test: `WaitlistPromotionService` — ordering logic, OFFERED→EXPIRED cascade to next entry, admin SKIP re-ordering (`apps/api/src/modules/waitlists/waitlist.spec.ts`)
 
 **Checkpoint**: User Stories 1 + 2 independently functional. Waitlist fully cycles through promotion, payment, and expiry.
 

@@ -9,12 +9,14 @@ import { AuditLogInterceptor } from './modules/audit-logs/audit-log.interceptor'
 import { AuthModule } from './modules/auth/auth.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { ClassesModule } from './modules/classes/classes.module';
+import { JobsModule } from './jobs/jobs.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
 import { UsersModule } from './modules/users/users.module';
+import { WaitlistModule } from './modules/waitlists/waitlist.module';
 
 @Module({
   imports: [
@@ -38,7 +40,9 @@ import { UsersModule } from './modules/users/users.module';
     SchedulesModule,
     NotificationsModule,
     BookingsModule,
+    WaitlistModule,
     PaymentsModule,
+    JobsModule,
   ],
   providers: [
     {
