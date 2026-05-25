@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, "feat/**"]
+  pull_request:
+    branches: [main, master]
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+
+jobs:
+  ci:
+    name: Typecheck / Lint / Test / Audit
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: booking_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/booking_test
+      DATABASE_URL_TEST: postgresql://test:test@localhost:5432/booking_test
+      JWT_SECRET: ci-test-jwt-secret-minimum-32-chars-long
+      AUTH_SECRET: ci-test-auth-secret-minimum-32-chars
+      NEXTAUTH_SECRET: ci-test-nextauth-secret-32chars
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder
+      RESEND_API_KEY: re_placeholder
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter=@app/db db:generate
+
+      - name: Run migrations (test DB)
+        run: pnpm --filter=@app/db exec prisma migrate deploy
+
+      - name: Typecheck
+        run: pnpm turbo run typecheck
+
+      - name: Lint
+        run: pnpm turbo run lint
+
+      - name: Unit + integration tests
+        run: pnpm turbo run test
+
+      - name: API tests
+        run: pnpm turbo run test:api
+
+      - name: OWASP dependency audit
+        run: pnpm audit --audit-level=high
+
+      - name: Check coverage threshold
+        run: echo "Coverage threshold enforced in jest.config.ts (≥80% domain)"

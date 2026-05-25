@@ -1,0 +1,24 @@
+{
+  "name": "@app/emails",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "dev": "email dev --port 3002",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.26",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react-email": "^3.0.4"
+  }
+}

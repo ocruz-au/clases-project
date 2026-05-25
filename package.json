@@ -1,0 +1,34 @@
+{
+  "name": "class-booking-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Class booking platform for Perth, Australia",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:api": "turbo run test:api",
+    "test:e2e": "turbo run test:e2e",
+    "clean": "turbo run clean && rimraf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "db:generate": "turbo run db:generate --filter=@app/db",
+    "db:migrate": "turbo run db:migrate --filter=@app/db",
+    "db:seed": "turbo run db:seed --filter=@app/db"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "rimraf": "^6.0.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

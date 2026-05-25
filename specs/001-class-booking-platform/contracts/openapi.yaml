@@ -1,0 +1,349 @@
+openapi: 3.1.0
+info:
+  title: Class Booking Platform API
+  version: 1.0.0
+  description: >
+    REST API for the Perth class booking platform. All timestamps are UTC (RFC 3339);
+    class times represent Australia/Perth local time. RBAC enforced per endpoint.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Catalog
+  - name: Bookings
+  - name: Waitlist
+  - name: Instructor
+  - name: Admin
+  - name: Payments
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a student account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Authenticate; may require MFA challenge for elevated roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResult' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /classes/sessions:
+    get:
+      tags: [Catalog]
+      summary: List bookable class sessions with filters
+      parameters:
+        - { name: dateFrom, in: query, schema: { type: string, format: date } }
+        - { name: dateTo, in: query, schema: { type: string, format: date } }
+        - { name: categoryId, in: query, schema: { type: string, format: uuid } }
+        - { name: instructorId, in: query, schema: { type: string, format: uuid } }
+        - { name: locationId, in: query, schema: { type: string, format: uuid } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/ClassSession' } }
+                  page: { type: integer }
+                  total: { type: integer }
+
+  /classes/sessions/{id}:
+    get:
+      tags: [Catalog]
+      summary: Get a session with live seat availability
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ClassSession' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /bookings/checkout:
+    post:
+      tags: [Bookings]
+      summary: Begin checkout — creates a seat hold and a Stripe Checkout Session
+      description: >
+        Transaction-safe. Locks the session row, verifies capacity, creates a HELD booking + SeatHold,
+        and returns the Stripe Checkout URL. Fails if full or if the student already holds this session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckoutRequest' }
+      responses:
+        '201': { description: Hold created, content: { application/json: { schema: { $ref: '#/components/schemas/CheckoutResult' } } } }
+        '409':
+          description: Session full or duplicate booking
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /bookings:
+    get:
+      tags: [Bookings]
+      summary: List the current user's bookings (history)
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Booking' } } } } }
+
+  /bookings/{id}/cancel:
+    post:
+      tags: [Bookings]
+      summary: Cancel a booking; applies cancellation policy and refunds if eligible
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: Cancelled, content: { application/json: { schema: { $ref: '#/components/schemas/Booking' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /waitlist:
+    post:
+      tags: [Waitlist]
+      summary: Join the waitlist for a full session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [classSessionId]
+              properties: { classSessionId: { type: string, format: uuid } }
+      responses:
+        '201': { description: Joined, content: { application/json: { schema: { $ref: '#/components/schemas/WaitlistEntry' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /admin/waitlist/{sessionId}:
+    get:
+      tags: [Admin]
+      summary: View ordered waitlist for a session
+      parameters: [ { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/WaitlistEntry' } } } } }
+
+  /admin/waitlist/entries/{id}/action:
+    post:
+      tags: [Admin]
+      summary: Remove, skip, or manually promote a waitlist entry
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [REMOVE, SKIP, PROMOTE] }
+      responses:
+        '200': { description: Applied, content: { application/json: { schema: { $ref: '#/components/schemas/WaitlistEntry' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/classes:
+    post:
+      tags: [Admin]
+      summary: Create a class
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ClassInput' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Class' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/availability-rules/{id}/generate:
+    post:
+      tags: [Admin]
+      summary: Generate class sessions from an availability rule (Perth-local times)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '201': { description: Sessions generated, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ClassSession' } } } } }
+
+  /admin/refunds:
+    post:
+      tags: [Admin]
+      summary: Issue a full or partial refund for a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paymentId, amountCents]
+              properties:
+                paymentId: { type: string, format: uuid }
+                amountCents: { type: integer, minimum: 1 }
+                reason: { type: string }
+      responses:
+        '201': { description: Refund created, content: { application/json: { schema: { $ref: '#/components/schemas/Refund' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /instructor/sessions:
+    get:
+      tags: [Instructor]
+      summary: List sessions assigned to the authenticated instructor
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ClassSession' } } } } }
+
+  /instructor/sessions/{id}/attendance:
+    post:
+      tags: [Instructor]
+      summary: Record check-in or no-show for an attendee
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookingId, status]
+              properties:
+                bookingId: { type: string, format: uuid }
+                status: { type: string, enum: [ATTENDED, NO_SHOW] }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/Booking' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /payments/stripe/webhook:
+    post:
+      tags: [Payments]
+      security: []
+      summary: Stripe webhook receiver (signature-verified, idempotent)
+      description: See contracts/stripe-webhook.md for event handling and idempotency rules.
+      responses:
+        '200': { description: Acknowledged }
+        '400': { description: Invalid signature }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  responses:
+    Unauthorized: { description: Not authenticated, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Forbidden: { description: Insufficient role, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    NotFound: { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Conflict: { description: Conflict, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    ValidationError: { description: Validation failed, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: array, items: { type: string } }
+    RegisterRequest:
+      type: object
+      required: [email, password, name]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 12 }
+        name: { type: string }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        mfaCode: { type: string, description: Required when MFA challenge is pending }
+    AuthResult:
+      type: object
+      properties:
+        token: { type: string }
+        mfaRequired: { type: boolean }
+        roles: { type: array, items: { type: string, enum: [STUDENT, INSTRUCTOR, ADMIN, SUPER_ADMIN] } }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        name: { type: string }
+        roles: { type: array, items: { type: string } }
+    ClassSession:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        classId: { type: string, format: uuid }
+        title: { type: string }
+        categoryId: { type: string, format: uuid }
+        instructorId: { type: string, format: uuid }
+        locationId: { type: string, format: uuid }
+        startsAt: { type: string, format: date-time, description: UTC; render in Australia/Perth }
+        endsAt: { type: string, format: date-time }
+        capacity: { type: integer }
+        seatsAvailable: { type: integer }
+        priceCents: { type: integer }
+        currency: { type: string, example: AUD }
+        status: { type: string, enum: [SCHEDULED, CANCELLED, COMPLETED] }
+    CheckoutRequest:
+      type: object
+      required: [classSessionId]
+      properties:
+        classSessionId: { type: string, format: uuid }
+        couponCode: { type: string }
+    CheckoutResult:
+      type: object
+      properties:
+        bookingId: { type: string, format: uuid }
+        seatHoldId: { type: string, format: uuid }
+        holdExpiresAt: { type: string, format: date-time }
+        stripeCheckoutUrl: { type: string, format: uri }
+    Booking:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        classSessionId: { type: string, format: uuid }
+        status: { type: string, enum: [HELD, CONFIRMED, CANCELLED, EXPIRED, NO_SHOW, ATTENDED] }
+        amountCents: { type: integer }
+        paymentId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+    WaitlistEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        classSessionId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        position: { type: integer }
+        status: { type: string, enum: [WAITING, OFFERED, CONVERTED, REMOVED, SKIPPED, EXPIRED] }
+    ClassInput:
+      type: object
+      required: [title, categoryId, priceCents, defaultCapacity]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        categoryId: { type: string, format: uuid }
+        priceCents: { type: integer, minimum: 0 }
+        defaultCapacity: { type: integer, minimum: 1 }
+        cancellationPolicyId: { type: string, format: uuid, nullable: true }
+    Class:
+      allOf:
+        - $ref: '#/components/schemas/ClassInput'
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+    Refund:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        paymentId: { type: string, format: uuid }
+        amountCents: { type: integer }
+        status: { type: string, enum: [PENDING, SUCCEEDED, FAILED] }

@@ -1,0 +1,29 @@
+{
+  "name": "@app/db",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "ts-node --project tsconfig.json prisma/seed.ts",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio",
+    "clean": "rimraf dist"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "prisma": {
+    "seed": "ts-node --project tsconfig.json prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "argon2": "^0.41.1",
+    "luxon": "^3.5.0",
+    "prisma": "^5.22.0"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2",
+    "ts-node": "^10.9.2"
+  }
+}

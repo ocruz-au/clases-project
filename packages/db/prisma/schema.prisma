@@ -1,0 +1,496 @@
+// Prisma schema for Class Booking Platform (Perth)
+// All timestamps: timestamptz (UTC storage); Perth display handled in application layer.
+// Soft delete: deletedAt IS NULL on all business entities; enforced via Prisma extension.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Roles & Users ────────────────────────────────────────────────────────────
+
+enum RoleKey {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  key         RoleKey   @unique
+  description String    @default("")
+  userRoles   UserRole[]
+
+  @@map("roles")
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  name            String
+  passwordHash    String?
+  mfaSecret       String?
+  mfaEnabled      Boolean      @default(false)
+  status          UserStatus   @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  userRoles         UserRole[]
+  instructorProfile InstructorProfile?
+  bookings          Booking[]
+  waitlistEntries   WaitlistEntry[]
+  payments          Payment[]
+  auditLogs         AuditLog[]   @relation("AuditActor")
+  notifications     Notification[]
+
+  @@index([email])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  user      User     @relation(fields: [userId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+// ─── Instructors ─────────────────────────────────────────────────────────────
+
+model InstructorProfile {
+  id        String         @id @default(uuid())
+  userId    String         @unique
+  bio       String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
+  user              User               @relation(fields: [userId], references: [id])
+  sessions          ClassSession[]
+  availabilityRules AvailabilityRule[]
+
+  @@map("instructor_profiles")
+}
+
+// ─── Catalog ──────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  classes     Class[]
+
+  @@map("categories")
+}
+
+model Location {
+  id        String    @id @default(uuid())
+  name      String
+  address   String
+  timezone  String    @default("Australia/Perth")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  rooms     Room[]
+
+  @@map("locations")
+}
+
+model Room {
+  id         String         @id @default(uuid())
+  locationId String
+  name       String
+  capacity   Int
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  deletedAt  DateTime?
+  location   Location       @relation(fields: [locationId], references: [id])
+  sessions   ClassSession[]
+  rules      AvailabilityRule[]
+
+  @@unique([locationId, name])
+  @@map("rooms")
+}
+
+model CancellationPolicy {
+  id        String    @id @default(uuid())
+  name      String
+  // JSON: [{ hoursBefore: 24, refundPercent: 100 }, { hoursBefore: 0, refundPercent: 0 }]
+  rules     Json
+  isDefault Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  classes   Class[]
+  sessions  ClassSession[]
+
+  @@map("cancellation_policies")
+}
+
+model Class {
+  id                   String              @id @default(uuid())
+  title                String
+  description          String              @default("")
+  categoryId           String
+  priceCents           Int
+  currency             String              @default("AUD")
+  defaultCapacity      Int
+  cancellationPolicyId String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  deletedAt            DateTime?
+  category             Category            @relation(fields: [categoryId], references: [id])
+  cancellationPolicy   CancellationPolicy? @relation(fields: [cancellationPolicyId], references: [id])
+  availabilityRules    AvailabilityRule[]
+  sessions             ClassSession[]
+
+  @@map("classes")
+}
+
+model AvailabilityRule {
+  id               String     @id @default(uuid())
+  classId          String
+  roomId           String
+  instructorId     String
+  rrule            String
+  startTimeLocal   String     // HH:mm in Perth local
+  durationMin      Int
+  capacityOverride Int?
+  activeFrom       DateTime
+  activeUntil      DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  deletedAt        DateTime?
+  class            Class      @relation(fields: [classId], references: [id])
+  room             Room       @relation(fields: [roomId], references: [id])
+  instructor       InstructorProfile @relation(fields: [instructorId], references: [id])
+
+  @@map("availability_rules")
+}
+
+// ─── Class Sessions ───────────────────────────────────────────────────────────
+
+enum SessionStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+model ClassSession {
+  id                   String              @id @default(uuid())
+  classId              String
+  roomId               String
+  instructorId         String
+  startsAt             DateTime
+  endsAt               DateTime
+  capacity             Int
+  status               SessionStatus       @default(SCHEDULED)
+  cancellationPolicyId String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  deletedAt            DateTime?
+  class                Class               @relation(fields: [classId], references: [id])
+  room                 Room                @relation(fields: [roomId], references: [id])
+  instructor           InstructorProfile   @relation(fields: [instructorId], references: [id])
+  cancellationPolicy   CancellationPolicy? @relation(fields: [cancellationPolicyId], references: [id])
+  bookings             Booking[]
+  seatHolds            SeatHold[]
+  waitlistEntries      WaitlistEntry[]
+
+  @@index([startsAt, status])
+  @@index([classId])
+  @@index([instructorId])
+  @@index([deletedAt])
+  @@map("class_sessions")
+}
+
+// ─── Bookings & Seat Holds ────────────────────────────────────────────────────
+
+enum BookingStatus {
+  HELD
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+  NO_SHOW
+  ATTENDED
+}
+
+model Booking {
+  id               String        @id @default(uuid())
+  classSessionId   String
+  userId           String
+  status           BookingStatus @default(HELD)
+  seatHoldId       String?
+  paymentId        String?
+  couponId         String?
+  amountCents      Int
+  checkedInAt      DateTime?
+  cancelledAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+  session          ClassSession  @relation(fields: [classSessionId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
+  seatHold         SeatHold?     @relation(fields: [seatHoldId], references: [id])
+  payment          Payment?      @relation(fields: [paymentId], references: [id])
+  coupon           Coupon?       @relation(fields: [couponId], references: [id])
+
+  // Partial unique index enforced via raw SQL migration (T008):
+  // CREATE UNIQUE INDEX booking_active_unique ON bookings(class_session_id, user_id)
+  // WHERE status IN ('HELD', 'CONFIRMED');
+  @@index([classSessionId, userId])
+  @@index([userId])
+  @@index([status])
+  @@map("bookings")
+}
+
+enum SeatHoldSource {
+  CHECKOUT
+  WAITLIST_PROMOTION
+}
+
+enum SeatHoldStatus {
+  ACTIVE
+  CONSUMED
+  RELEASED
+}
+
+model SeatHold {
+  id              String         @id @default(uuid())
+  classSessionId  String
+  userId          String
+  source          SeatHoldSource
+  expiresAt       DateTime
+  status          SeatHoldStatus @default(ACTIVE)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  session         ClassSession   @relation(fields: [classSessionId], references: [id])
+  bookings        Booking[]
+  waitlistEntries WaitlistEntry[]
+
+  @@index([classSessionId, status, expiresAt])
+  @@map("seat_holds")
+}
+
+// ─── Waitlist ─────────────────────────────────────────────────────────────────
+
+enum WaitlistEntryStatus {
+  WAITING
+  OFFERED
+  CONVERTED
+  REMOVED
+  SKIPPED
+  EXPIRED
+}
+
+model WaitlistEntry {
+  id                String              @id @default(uuid())
+  classSessionId    String
+  userId            String
+  position          Int
+  status            WaitlistEntryStatus @default(WAITING)
+  offeredSeatHoldId String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
+  session           ClassSession        @relation(fields: [classSessionId], references: [id])
+  user              User                @relation(fields: [userId], references: [id])
+  offeredSeatHold   SeatHold?           @relation(fields: [offeredSeatHoldId], references: [id])
+
+  // Partial unique indexes enforced via raw SQL migration (T008):
+  // UNIQUE on (classSessionId, userId) WHERE status NOT IN ('REMOVED','SKIPPED','EXPIRED','CONVERTED')
+  // UNIQUE on (classSessionId, position) WHERE status = 'WAITING'
+  @@index([classSessionId, status])
+  @@index([classSessionId, position])
+  @@map("waitlist_entries")
+}
+
+// ─── Payments & Refunds ───────────────────────────────────────────────────────
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Payment {
+  id                       String        @id @default(uuid())
+  userId                   String
+  stripeCheckoutSessionId  String?
+  stripePaymentIntentId    String?       @unique
+  amountCents              Int
+  currency                 String        @default("AUD")
+  status                   PaymentStatus @default(PENDING)
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  deletedAt                DateTime?
+  user                     User          @relation(fields: [userId], references: [id])
+  bookings                 Booking[]
+  refunds                  Refund[]
+
+  @@index([userId])
+  @@index([stripeCheckoutSessionId])
+  @@map("payments")
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+model Refund {
+  id            String       @id @default(uuid())
+  paymentId     String
+  amountCents   Int
+  reason        String       @default("")
+  stripeRefundId String?     @unique
+  status        RefundStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  payment       Payment      @relation(fields: [paymentId], references: [id])
+
+  @@map("refunds")
+}
+
+// ─── Coupons ──────────────────────────────────────────────────────────────────
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+model Coupon {
+  id              String     @id @default(uuid())
+  code            String     @unique
+  type            CouponType
+  value           Int
+  validFrom       DateTime
+  validUntil      DateTime
+  maxRedemptions  Int?
+  redeemedCount   Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
+  bookings        Booking[]
+
+  @@map("coupons")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+enum NotificationType {
+  BOOKING_CONFIRMATION
+  CANCELLATION
+  WAITLIST_PROMOTION
+  REMINDER
+}
+
+enum NotificationChannel {
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel @default(EMAIL)
+  payload   Json
+  status    NotificationStatus  @default(PENDING)
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  user      User                @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+  @@map("notifications")
+}
+
+// ─── Audit Log (append-only) ──────────────────────────────────────────────────
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorId      String?
+  action       String
+  resourceType String
+  resourceId   String
+  beforeState  Json?
+  afterState   Json?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+  actor        User?    @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([resourceType, resourceId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Webhook Idempotency ──────────────────────────────────────────────────────
+
+model ProcessedWebhookEvent {
+  id          String   @id // Stripe event id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@map("processed_webhook_events")
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+enum SettingScope {
+  GLOBAL
+  SECURITY
+}
+
+model Setting {
+  key       String       @id
+  value     Json
+  scope     SettingScope @default(GLOBAL)
+  updatedBy String?
+  updatedAt DateTime     @updatedAt
+
+  @@map("settings")
+}
+
+// ─── Reviews (post-MVP placeholder) ──────────────────────────────────────────
+
+model Review {
+  id             String       @id @default(uuid())
+  classSessionId String
+  userId         String
+  rating         Int
+  comment        String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@map("reviews")
+}
