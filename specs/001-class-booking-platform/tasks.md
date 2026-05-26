@@ -252,13 +252,13 @@ the job again — no duplicate sent.
 
 ### Tests for User Story 7 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T084 [P] [US7] Integration test: seed near-future booking, trigger reminder job, verify one `Notification(type=REMINDER)` created; second trigger = no new notification (`apps/api/tests/integration/reminders.test.ts`)
-- [ ] T085 [US7] Unit test: reminder job selects only eligible bookings (CONFIRMED, not already notified, within lead-time window), respects Perth tz for session time (`apps/api/src/jobs/reminder.job.spec.ts`)
+- [x] T084 [P] [US7] Integration test: seed near-future booking, trigger reminder job, verify one `Notification(type=REMINDER)` created; second trigger = no new notification (`apps/api/tests/integration/reminders.test.ts`)
+- [x] T085 [US7] Unit test: reminder job selects only eligible bookings (CONFIRMED, not already notified, within lead-time window), respects Perth tz for session time (`apps/api/src/jobs/reminder.job.spec.ts`)
 
 ### Implementation for User Story 7
 
-- [ ] T086 [P] [US7] Create reminder React Email template in `packages/emails/src/templates/Reminder.tsx`: class/session details, Perth-local time, location, instructor name
-- [ ] T087 [US7] Implement reminder cron job in `apps/api/src/jobs/reminder.job.ts` (`@Cron(CronExpression.EVERY_HOUR)`): query `CONFIRMED` bookings where `session.startsAt` is within `(now, now + reminderLeadHours)` (from `Setting`) and no `Notification(type=REMINDER)` exists; dispatch `REMINDER` email via `NotificationService`; idempotent (checks existing notification before creating)
+- [x] T086 [P] [US7] Create reminder React Email template in `packages/emails/src/templates/Reminder.tsx`: class/session details, Perth-local time, location, instructor name
+- [x] T087 [US7] Implement reminder cron job in `apps/api/src/jobs/reminder.job.ts` (`@Cron(CronExpression.EVERY_HOUR)`): query `CONFIRMED` bookings where `session.startsAt` is within `(now, now + reminderLeadHours)` (from `Setting`) and no `Notification(type=REMINDER)` exists; dispatch `REMINDER` email via `NotificationService`; idempotent (checks existing notification before creating)
 
 **Checkpoint**: User Story 7 functional. Students receive timely reminder emails.
 
