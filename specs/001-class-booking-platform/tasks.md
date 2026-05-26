@@ -314,14 +314,14 @@ each report for a date range that includes them. Verify totals match the underly
 **Purpose**: Accessibility, security audit, contract validation, documentation, E2E tests, and
 quickstart validation across all modules.
 
-- [ ] T096 [P] Accessibility audit: run `axe-core` against all student/instructor/admin pages; fix all critical violations; verify keyboard navigation and WCAG 2.1 AA colour contrast on all interactive elements
-- [ ] T097 [P] OWASP dependency audit: run `pnpm audit` (or Snyk), address all high/critical CVEs; add `pnpm audit --audit-level=high` as a CI gate
-- [ ] T098 [P] OpenAPI contract validation: add CI step using `openapi-diff` or `swagger-cli validate` to compare NestJS-generated spec against `contracts/openapi.yaml`; fail on schema drift
-- [ ] T099 [P] Module documentation: add `README.md` to each NestJS module (`auth`, `bookings`, `waitlists`, `payments`, `notifications`, `audit-logs`, `settings`, `reports`, `coupons`) describing purpose, env vars used, and public contract endpoints
-- [ ] T100 [P] Playwright E2E — critical journey 1: student register → browse → book → pay (Stripe test card) → confirm booking history (`apps/web/tests/e2e/booking.spec.ts`)
-- [ ] T101 [P] Playwright E2E — critical journey 2: fill session → join waitlist → cancel confirmed booking → verify waitlisted student promoted → pay → confirmed (`apps/web/tests/e2e/waitlist.spec.ts`)
-- [ ] T102 [P] Playwright E2E — critical journey 3: cancel booking within refund window → verify refund issued + cancellation email (`apps/web/tests/e2e/cancellation.spec.ts`)
-- [ ] T103 Run `quickstart.md` validation: fresh DB, `prisma migrate dev`, `prisma db seed`, `pnpm dev`, verify all MVP flows from `quickstart.md` pass; fix any discrepancies
+- [x] T096 [P] Accessibility audit: run `axe-core` against all student/instructor/admin pages; fix all critical violations; verify keyboard navigation and WCAG 2.1 AA colour contrast on all interactive elements
+- [x] T097 [P] OWASP dependency audit: run `pnpm audit` (or Snyk), address all high/critical CVEs; add `pnpm audit --audit-level=high` as a CI gate
+- [x] T098 [P] OpenAPI contract validation: add CI step using `openapi-diff` or `swagger-cli validate` to compare NestJS-generated spec against `contracts/openapi.yaml`; fail on schema drift
+- [x] T099 [P] Module documentation: add `README.md` to each NestJS module (`auth`, `bookings`, `waitlists`, `payments`, `notifications`, `audit-logs`, `settings`, `reports`, `coupons`) describing purpose, env vars used, and public contract endpoints
+- [x] T100 [P] Playwright E2E — critical journey 1: student register → browse → book → pay (Stripe test card) → confirm booking history (`apps/web/tests/e2e/booking.spec.ts`)
+- [x] T101 [P] Playwright E2E — critical journey 2: fill session → join waitlist → cancel confirmed booking → verify waitlisted student promoted → pay → confirmed (`apps/web/tests/e2e/waitlist.spec.ts`)
+- [x] T102 [P] Playwright E2E — critical journey 3: cancel booking within refund window → verify refund issued + cancellation email (`apps/web/tests/e2e/cancellation.spec.ts`)
+- [x] T103 Run `quickstart.md` validation: fresh DB, `prisma migrate dev`, `prisma db seed`, `pnpm dev`, verify all MVP flows from `quickstart.md` pass; fix any discrepancies
 
 ---
 

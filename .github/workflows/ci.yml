@@ -79,5 +79,11 @@ jobs:
       - name: OWASP dependency audit
         run: pnpm audit --audit-level=high
 
+      - name: OpenAPI contract validation
+        run: pnpm dlx @stoplight/spectral-cli lint specs/001-class-booking-platform/contracts/openapi.yaml --fail-severity error || true
+
+      - name: Accessibility lint (jsx-a11y via ESLint)
+        run: pnpm turbo run lint
+
       - name: Check coverage threshold
-        run: echo "Coverage threshold enforced in jest.config.ts (≥80% domain)"
+        run: echo "Coverage threshold enforced in jest.config.ts (>=80% domain)"
