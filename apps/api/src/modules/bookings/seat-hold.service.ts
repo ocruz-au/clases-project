@@ -1,6 +1,7 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SettingsService } from '../settings/settings.service';
 
 export type SeatHoldSource = 'CHECKOUT' | 'WAITLIST_PROMOTION';
 
@@ -18,10 +19,14 @@ export class SeatHoldService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    @Optional() private readonly settingsService: SettingsService | null,
   ) {}
 
   async createHold(userId: string, sessionId: string, source: SeatHoldSource): Promise<HoldResult> {
-    const holdWindowMinutes = this.config.get<number>('SEAT_HOLD_WINDOW_MINUTES') ?? 10;
+    const envDefault = this.config.get<number>('SEAT_HOLD_WINDOW_MINUTES') ?? 10;
+    const holdWindowMinutes = this.settingsService
+      ? await this.settingsService.get<number>('seatHoldWindowMinutes', envDefault)
+      : envDefault;
 
     return this.prisma.$transaction(async (tx) => {
       // Row-lock the session to serialize concurrent claimants

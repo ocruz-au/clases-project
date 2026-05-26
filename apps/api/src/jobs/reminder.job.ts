@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../modules/notifications/notification.service';
+import { SettingsService } from '../modules/settings/settings.service';
 import { toPerth } from '@app/shared';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class ReminderJob {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationService,
+    @Optional() private readonly settingsService: SettingsService | null,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -88,14 +90,12 @@ export class ReminderJob {
   }
 
   private async getLeadHours(): Promise<number> {
-    const setting = await this.prisma.setting.findUnique({
-      where: { key: 'reminder_lead_hours' },
-    });
+    if (this.settingsService) {
+      return this.settingsService.get<number>('reminderLeadHours', ReminderJob.DEFAULT_LEAD_HOURS);
+    }
+    const setting = await this.prisma.setting.findUnique({ where: { key: 'reminderLeadHours' } });
     if (!setting) return ReminderJob.DEFAULT_LEAD_HOURS;
-    const value = setting.value as { hours?: number } | number;
-    if (typeof value === 'number') return value;
-    return typeof (value as { hours?: number }).hours === 'number'
-      ? (value as { hours: number }).hours
-      : ReminderJob.DEFAULT_LEAD_HOURS;
+    const value = setting.value as number;
+    return typeof value === 'number' ? value : ReminderJob.DEFAULT_LEAD_HOURS;
   }
 }

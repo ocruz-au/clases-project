@@ -275,13 +275,13 @@ and verify the hold expires in 5 min. Attempt to access settings as an admin —
 
 ### Tests for User Story 8 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T088 [P] [US8] API test: super admin reads/updates settings; admin role denied; setting change reflected in runtime behaviour (`apps/api/tests/api/settings.test.ts`)
+- [x] T088 [P] [US8] API test: super admin reads/updates settings; admin role denied; setting change reflected in runtime behaviour (`apps/api/tests/api/settings.test.ts`)
 
 ### Implementation for User Story 8
 
-- [ ] T089 [P] [US8] Implement `SettingsModule` in `apps/api/src/modules/settings/`: `SettingsService` (get/set key–value `Setting` rows, cached in-process with TTL), `SettingsController` (CRUD, `@Roles(SUPER_ADMIN)`); audit log on every change
-- [ ] T090 [US8] Wire `SettingsService` into `SeatHoldService` (hold window), `ReminderJob` (lead time), `CancellationPolicyService` (default policy) — fetch at runtime from `SettingsService` (replaces env-var hardcodes) (`apps/api/src/common/settings.service.ts`)
-- [ ] T091 [P] [US8] Build Next.js super admin settings UI `apps/web/src/app/(super-admin)/settings/page.tsx`: global settings form (seat hold, reminder lead time, default policy) + security settings form (password requirements, session expiry); `@Roles(SUPER_ADMIN)` route guard in middleware
+- [x] T089 [P] [US8] Implement `SettingsModule` in `apps/api/src/modules/settings/`: `SettingsService` (get/set key–value `Setting` rows, cached in-process with TTL), `SettingsController` (CRUD, `@Roles(SUPER_ADMIN)`); audit log on every change
+- [x] T090 [US8] Wire `SettingsService` into `SeatHoldService` (hold window), `ReminderJob` (lead time), `CancellationPolicyService` (default policy) — fetch at runtime from `SettingsService` (replaces env-var hardcodes) (`apps/api/src/common/settings.service.ts`)
+- [x] T091 [P] [US8] Build Next.js super admin settings UI `apps/web/src/app/(super-admin)/settings/page.tsx`: global settings form (seat hold, reminder lead time, default policy) + security settings form (password requirements, session expiry); `@Roles(SUPER_ADMIN)` route guard in middleware
 
 **Checkpoint**: User Story 8 functional. Super admin can tune application behaviour without a code deploy.
 

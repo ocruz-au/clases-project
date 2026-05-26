@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SettingsService } from '../settings/settings.service';
 import { toPerth } from '@app/shared';
 
 interface PolicyRule {
@@ -9,7 +10,10 @@ interface PolicyRule {
 
 @Injectable()
 export class CancellationPolicyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly settingsService: SettingsService | null,
+  ) {}
 
   list() {
     return this.prisma.cancellationPolicy.findMany({ where: { deletedAt: null }, orderBy: { name: 'asc' } });
@@ -22,6 +26,13 @@ export class CancellationPolicyService {
   }
 
   async findDefault() {
+    if (this.settingsService) {
+      const policyId = await this.settingsService.get<string | null>('defaultCancellationPolicyId', null);
+      if (policyId) {
+        const policy = await this.prisma.cancellationPolicy.findFirst({ where: { id: policyId, deletedAt: null } });
+        if (policy) return policy;
+      }
+    }
     return this.prisma.cancellationPolicy.findFirst({ where: { isDefault: true, deletedAt: null } });
   }
 

@@ -17,6 +17,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { UsersModule } from './modules/users/users.module';
 import { WaitlistModule } from './modules/waitlists/waitlist.module';
 
@@ -41,6 +42,7 @@ import { WaitlistModule } from './modules/waitlists/waitlist.module';
     ClassesModule,
     CouponsModule,
     SchedulesModule,
+    SettingsModule,
     InstructorsModule,
     NotificationsModule,
     BookingsModule,
