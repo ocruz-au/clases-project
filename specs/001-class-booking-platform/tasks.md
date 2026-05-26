@@ -297,13 +297,13 @@ each report for a date range that includes them. Verify totals match the underly
 
 ### Tests for User Story 9 ⚠️ Write first — verify they FAIL before implementation
 
-- [ ] T092 [US9] Unit test: report aggregate queries are Perth-tz-aware (date range boundaries map to correct UTC for `startsAt` filter) (`apps/api/src/modules/reports/reports.spec.ts`)
+- [x] T092 [US9] Unit test: report aggregate queries are Perth-tz-aware (date range boundaries map to correct UTC for `startsAt` filter) (`apps/api/src/modules/reports/reports.spec.ts`)
 
 ### Implementation for User Story 9
 
-- [ ] T093 [P] [US9] Implement `ReportsModule` in `apps/api/src/modules/reports/`: `ReportsService` with aggregation methods — `bookingsByDateRange`, `revenueByDateRange`, `attendanceSummary`, `cancellationsByDateRange`, `waitlistConversionRate`; all date-range params converted to UTC via `tz.dateRangeUTC`
-- [ ] T094 [P] [US9] Reports controller in `apps/api/src/modules/reports/reports.controller.ts`: `GET /admin/reports/bookings`, `/revenue`, `/attendance`, `/cancellations`, `/waitlist-conversion` — `@Roles(ADMIN)`, Zod-validated date-range query params
-- [ ] T095 [P] [US9] Build Next.js admin reports UI `apps/web/src/app/(admin)/reports/page.tsx`: date range picker (Perth local), report cards/tables for each metric, downloadable CSV
+- [x] T093 [P] [US9] Implement `ReportsModule` in `apps/api/src/modules/reports/`: `ReportsService` with aggregation methods — `bookingsByDateRange`, `revenueByDateRange`, `attendanceSummary`, `cancellationsByDateRange`, `waitlistConversionRate`; all date-range params converted to UTC via `tz.dateRangeUTC`
+- [x] T094 [P] [US9] Reports controller in `apps/api/src/modules/reports/reports.controller.ts`: `GET /admin/reports/bookings`, `/revenue`, `/attendance`, `/cancellations`, `/waitlist-conversion` — `@Roles(ADMIN)`, Zod-validated date-range query params
+- [x] T095 [P] [US9] Build Next.js admin reports UI `apps/web/src/app/(admin)/reports/page.tsx`: date range picker (Perth local), report cards/tables for each metric, downloadable CSV
 
 **Checkpoint**: User Story 9 functional. All user stories complete.
 

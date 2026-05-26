@@ -15,6 +15,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -48,6 +49,7 @@ import { WaitlistModule } from './modules/waitlists/waitlist.module';
     BookingsModule,
     WaitlistModule,
     PaymentsModule,
+    ReportsModule,
     JobsModule,
   ],
   providers: [
